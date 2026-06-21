@@ -22,4 +22,4 @@ Este repositório contém apenas a versão distribuível e ofuscada do CX Tools,
 
 ## Link
 
-`https://cdn.jsdelivr.net/gh/teagar/cx-tools@v2.0.0/dist/script.obf.js`
+`https://cdn.jsdelivr.net/gh/teagar/cx-tools@v2.3.0/dist/script.obf.js`
