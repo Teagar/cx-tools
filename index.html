@@ -1,0 +1,1498 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>CX Tools Mock Tester</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --blue: #3483fa;
+      --green: #00a650;
+      --red: #f23d4f;
+      --bg: #f5f6f8;
+      --card: #fff;
+      --text: #333;
+      --muted: #777;
+      --border: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: #fff159;
+      padding: 14px 24px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    header strong {
+      font-size: 18px;
+    }
+
+    header span {
+      color: #555;
+      font-size: 13px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 20px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .panel,
+    .case-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .panel {
+      padding: 16px;
+      height: fit-content;
+      position: sticky;
+      top: 78px;
+    }
+
+    .panel h2,
+    .case-card h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .panel p {
+      margin: 8px 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(52,131,250,.15);
+    }
+
+    button.mock-btn {
+      appearance: none;
+      border: none;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: .15s;
+    }
+
+    button.mock-btn:hover {
+      filter: brightness(.95);
+    }
+
+    button.mock-btn.secondary {
+      background: #eef3ff;
+      color: var(--blue);
+      border: 1px solid rgba(52,131,250,.2);
+    }
+
+    button.mock-btn.danger {
+      background: var(--red);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .log {
+      background: #111827;
+      color: #d1fae5;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 90px;
+      max-height: 180px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      margin-top: 10px;
+    }
+
+    .scroll-container {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+    }
+
+    .tab {
+      display: inline-flex;
+      padding: 9px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #555;
+      background: #fff;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .tab-active,
+    .tab.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 20px;
+    }
+
+    .case-card {
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .case-title {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #e9f7ef;
+      color: var(--green);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 8px 16px;
+      font-size: 14px;
+      margin-top: 14px;
+    }
+
+    .kv b {
+      color: #555;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .detail-button__wrapper {
+      display: inline-flex;
+      position: relative;
+    }
+
+    .detail-button__dot {
+      width: 9px;
+      height: 9px;
+      background: var(--red);
+      border-radius: 50%;
+      position: absolute;
+      right: -2px;
+      top: -2px;
+      border: 2px solid #fff;
+    }
+
+    .andes-button--mute {
+      border: none;
+      background: transparent;
+      color: var(--blue);
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0;
+      margin-left: 6px;
+    }
+
+    .hidden-extra {
+      display: none;
+    }
+
+    .outgoing-email__email-content-wrapper,
+    .mlc-list-message {
+      border: 1px dashed #cfd8e3;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafafa;
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .side-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .side-box h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    .side-box ul {
+      padding-left: 18px;
+      margin: 0;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .mock-modal {
+      position: fixed;
+      inset: auto 24px 24px auto;
+      width: 560px;
+      max-width: calc(100vw - 48px);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 16px 50px rgba(0,0,0,.22);
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .mock-modal h3 {
+      margin: 0 0 12px;
+    }
+
+    .mediation-tabs {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    [role="tab"] {
+      border: none;
+      background: #eef3ff;
+      color: var(--blue);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    .container-messaging__date-group {
+      margin: 16px 0 8px;
+      color: #777;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .container-message {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin: 8px 0;
+      background: #fafafa;
+    }
+
+    .container-message__typeUser {
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .container-message__date {
+      color: #777;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .container-message__content {
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .container-dispute {
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .andes-radio {
+      display: block;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .mediation-dispute-sidebar__dates {
+      display: block;
+      color: #777;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .mediation-dispute-header__title {
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .mediation-dispute-header__status {
+      color: var(--red);
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .mediation-ratings {
+      margin-top: 14px;
+      padding: 10px;
+      background: #f6fff9;
+      border: 1px solid #c7f1d8;
+      border-radius: 10px;
+    }
+
+    #clipboard-output {
+      min-height: 120px;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        position: static;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div>
+    <strong>Mock CX Tools Tester</strong>
+    <span> — ambiente falso para testar injeção, extração e clipboard</span>
+  </div>
+  <span>Case ativo: <b>#123456789</b></span>
+</header>
+
+<main>
+  <aside class="panel">
+    <h2>Executar ferramenta</h2>
+    <p>
+      Cole abaixo o script completo da sua ferramenta, incluindo
+      <code>(function(){...})();</code>, e clique em executar.
+    </p>
+
+    <textarea id="tool-code" placeholder="Cole aqui o código da ferramenta..."></textarea>
+
+    <div class="btn-row">
+      <button class="mock-btn" id="run-tool">Executar ferramenta</button>
+      <button class="mock-btn secondary" id="reset-mock">Resetar mock</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="mock-btn secondary" id="read-clipboard">Ler clipboard</button>
+    </div>
+
+    <textarea id="clipboard-output" placeholder="Resultado do clipboard aparecerá aqui, se o navegador permitir leitura."></textarea>
+
+    <div class="log" id="log">Aguardando...</div>
+
+    <p>
+      Depois de executar, procure o ícone da ferramenta na toolbar falsa, no topo do card principal.
+      Clique normal para menu completo; clique direito para menu compacto.
+    </p>
+  </aside>
+
+  <section>
+    <nav class="scroll-container">
+      <a
+        class="tab tab-active"
+        aria-current="page"
+        data-testid="tab-123456789"
+        href="/cases/123456789"
+      >
+        Caso #123456789
+      </a>
+
+      <a
+        class="tab"
+        data-testid="tab-987654321"
+        href="/cases/987654321"
+      >
+        Caso #987654321
+      </a>
+    </nav>
+
+    <!-- A toolbar falsa será criada por JS como section.remote-module com Shadow DOM -->
+    <div id="toolbar-mount"></div>
+
+    <div class="layout">
+      <article class="case-detail case-container" id="cases-123456789">
+        <div class="case-card">
+          <div class="case-title">
+            <div>
+              <h2>Reclamação de compra — Produto não entregue</h2>
+              <div class="muted">Fluxo falso para testar seletores da CX Tools.</div>
+            </div>
+            <span class="badge">Aberto</span>
+          </div>
+
+          <div class="kv">
+            <b>Case ID</b>
+            <span>123456789</span>
+
+            <b>Comprador</b>
+            <span>Maria Teste</span>
+
+            <b>Vendedor</b>
+            <span>Loja Exemplo LTDA</span>
+
+            <b>Pedido</b>
+            <span>2000000000123456</span>
+
+            <b>Rastreio</b>
+            <span>BR123456789BR</span>
+
+            <b>Link externo</b>
+            <span>
+              https://precode.com.br/pedido/abc123?token=teste
+            </span>
+          </div>
+
+          <div class="actions">
+            <div class="detail-button__wrapper">
+              <button class="mock-btn secondary" data-testid="detail-button" id="open-detail">
+                Detalhe do caso
+              </button>
+              <span class="detail-button__dot" data-testid="detail-button-dot"></span>
+            </div>
+
+            <button class="mock-btn secondary" data-testid="shipment-detail.button" id="open-shipment">
+              Detalhe do envio
+            </button>
+          </div>
+        </div>
+
+        <div class="case-card">
+          <h2>Resumo visível da página</h2>
+
+          <p>
+            Cliente informa que comprou um produto, mas não recebeu.
+            O código de rastreio informado foi <b>BR123456789BR</b>.
+            <button class="andes-button--mute" data-expand="#extra-1">Ler mais</button>
+          </p>
+
+          <p id="extra-1" class="hidden-extra">
+            Informação expandida: o comprador anexou comprovante de pagamento,
+            prints da conversa e um link complementar:
+            https://example.com/documento/comprovante-123
+          </p>
+
+          <div class="outgoing-email__email-content-wrapper">
+            Olá, analisamos seu caso. Você pode acompanhar detalhes em
+            https://precode.com.br/atendimento/caso/123456789.
+            Caso precise, envie resposta pelo canal oficial.
+          </div>
+
+          <div class="mlc-list-message">
+            Mensagem interna: rastreio alternativo AA987654321BR e URL
+            https://docs.example.org/ticket/123456789.
+            <button class="andes-button--mute" data-expand="#extra-2">Ler mais</button>
+          </div>
+
+          <p id="extra-2" class="hidden-extra">
+            Observação expandida: pagamento aprovado, fatura disponível,
+            compra feita com Mercado Envios.
+          </p>
+        </div>
+      </article>
+
+      <aside>
+        <div class="side-box">
+          <h3>Componentes mockados</h3>
+          <ul>
+            <li>Toolbar em Shadow DOM</li>
+            <li>Detalhe do caso</li>
+            <li>Mensagens e disputas</li>
+            <li>Envio em dois níveis de Shadow DOM</li>
+            <li>Compra e conversa pós-venda</li>
+            <li>Fatura via menu</li>
+          </ul>
+        </div>
+
+        <div id="context-mount"></div>
+        <div id="resolution-mount"></div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script>
+  const CASE_ID = "123456789";
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+
+  function log(message) {
+    const el = $("#log");
+    const time = new Date().toLocaleTimeString();
+    el.textContent += `\n[${time}] ${message}`;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function clearDynamicMock() {
+    document.querySelectorAll("[data-mock-dynamic='true']").forEach(el => el.remove());
+  }
+
+  function removeSectionByIdContains(partial) {
+    document.querySelectorAll("section.remote-module").forEach(section => {
+      if (section.id.includes(partial)) section.remove();
+    });
+  }
+
+  function createToolbarRemoteModule() {
+    const mount = $("#toolbar-mount");
+    mount.innerHTML = "";
+
+    const section = document.createElement("section");
+    section.className = "remote-module";
+    section.id = `remote-module-cx-toolbar-cases-${CASE_ID}`;
+    mount.appendChild(section);
+
+    const sr = section.attachShadow({ mode: "open" });
+
+    sr.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          margin-bottom: 16px;
+        }
+
+        .toolbar-shell {
+          background: #fff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 10px 12px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        }
+
+        .title {
+          font: 600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          color: #333;
+        }
+
+        .icons-container {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .icon-container {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .toolbar-icon-button-component-container {
+          display: inline-flex;
+        }
+
+        .andes-tooltip__trigger {
+          position: relative;
+          display: inline-flex;
+        }
+
+        .inactive-tool,
+        .active-tool {
+          position: absolute;
+          inset: -3px;
+          border-radius: 8px;
+          pointer-events: none;
+        }
+
+        .active-tool {
+          background: rgba(52,131,250,.12);
+        }
+
+        .toolbar-component__content-button {
+          width: 38px;
+          height: 38px;
+          border: 1px solid #e5e7eb;
+          background: #fff;
+          border-radius: 8px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #3483fa;
+          transition: .15s;
+        }
+
+        .toolbar-component__content-button:hover,
+        .toolbar-component__content-button--active {
+          background: #eef3ff;
+          border-color: rgba(52,131,250,.35);
+        }
+
+        .andes-visually-hidden {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+        }
+
+        .fake-tool {
+          width: 38px;
+          height: 38px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          background: #fafafa;
+          color: #777;
+        }
+      </style>
+
+      <div class="toolbar-shell">
+        <div class="title">Toolbar falsa do caso #${CASE_ID}</div>
+
+        <div class="icons-container">
+          <button class="fake-tool" title="Botão fake">?</button>
+          <div class="icon-container"></div>
+        </div>
+      </div>
+    `;
+
+    log("Toolbar Shadow DOM criada.");
+  }
+
+  function createContextSectionsModule() {
+    const mount = $("#context-mount");
+    mount.innerHTML = "";
+
+    const section = document.createElement("section");
+    section.className = "remote-module";
+    section.id = `remote-module-contextsectionsmodule-cases-${CASE_ID}`;
+    mount.appendChild(section);
+
+    const sr = section.attachShadow({ mode: "open" });
+
+    sr.innerHTML = `
+      <style>
+        .box {
+          background: #fff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 14px;
+          margin-bottom: 16px;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        h3 {
+          margin: 0 0 10px;
+          font-size: 14px;
+        }
+
+        button {
+          border: none;
+          background: #00838f;
+          color: white;
+          border-radius: 8px;
+          padding: 9px 12px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+      </style>
+
+      <div class="box">
+        <h3>Context sections module</h3>
+        <button data-testid="card-purchase.button">Detalhe da compra</button>
+      </div>
+    `;
+
+    sr.querySelector('[data-testid="card-purchase.button"]')
+      .addEventListener("click", createPurchaseSecondLevel);
+
+    log("ContextSections Shadow DOM criado.");
+  }
+
+  function createResolutionModule() {
+    const mount = $("#resolution-mount");
+    mount.innerHTML = "";
+
+    const section = document.createElement("section");
+    section.className = "remote-module";
+    section.id = `remote-module-resolutionorchestrator-cases-${CASE_ID}-resolution`;
+    mount.appendChild(section);
+
+    const sr1 = section.attachShadow({ mode: "open" });
+
+    sr1.innerHTML = `
+      <section class="remote-module" id="remote-module-medclaimmain"></section>
+    `;
+
+    const medclaimSection = sr1.querySelector("#remote-module-medclaimmain");
+    const sr2 = medclaimSection.attachShadow({ mode: "open" });
+
+    sr2.innerHTML = `
+      <style>
+        .box {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          padding: 12px;
+          border: 1px solid #e5e7eb;
+          border-radius: 10px;
+          background: #fff;
+        }
+
+        button {
+          border: none;
+          background: #ff6d00;
+          color: white;
+          border-radius: 8px;
+          padding: 8px 10px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .andes-list__item {
+          margin-top: 10px;
+        }
+      </style>
+
+      <div class="box">
+        <b>Resolution / Medclaim</b>
+        <p>Menu falso usado pelo item Abrir Fatura.</p>
+        <button data-testid="menu-trigger" aria-label="Ações">Ações</button>
+        <div id="invoice-slot"></div>
+      </div>
+    `;
+
+    sr2.querySelector('[data-testid="menu-trigger"]').addEventListener("click", () => {
+      sr2.querySelector("#invoice-slot").innerHTML = `
+        <div class="andes-list__item" data-testid="open-invoice">
+          <button>Abrir fatura</button>
+        </div>
+      `;
+
+      sr2.querySelector('[data-testid="open-invoice"] button').addEventListener("click", () => {
+        alert("Fatura mock aberta com sucesso.");
+        log("Fatura mock aberta.");
+      });
+
+      log("Menu de fatura aberto.");
+    });
+
+    log("Resolution/Medclaim Shadow DOM criado.");
+  }
+
+  function createMediationModal() {
+    document.querySelectorAll(".mock-modal[data-kind='mediation']").forEach(el => el.remove());
+
+    const modal = document.createElement("div");
+    modal.className = "mock-modal";
+    modal.dataset.kind = "mediation";
+    modal.dataset.mockDynamic = "true";
+
+    modal.innerHTML = `
+      <h3>Detalhe do caso #${CASE_ID}</h3>
+
+      <div class="mediation-tabs">
+        <button role="tab">Mensagens</button>
+        <button role="tab">Disputas</button>
+
+        <section class="container-messaging__messages">
+          <div class="container-messaging__date-group">Hoje</div>
+
+          <div class="container-message">
+            <span class="container-message__typeUser">Comprador</span>
+            <span class="container-message__date">09:14</span>
+            <div class="container-message__content">
+              Não recebi o produto. O rastreio BR123456789BR não atualiza.
+            </div>
+          </div>
+
+          <div class="container-message">
+            <span class="container-message__typeUser">Vendedor</span>
+            <span class="container-message__date">10:02</span>
+            <div class="container-message__content">
+              Enviamos comprovante em https://example.com/comprovante/envio-123.
+            </div>
+          </div>
+
+          <div class="container-message">
+            <span class="container-message__typeUser">Mediação</span>
+            <span class="container-message__date">10:30</span>
+            <div class="container-message__content">
+              Solicitamos evidências adicionais às partes.
+            </div>
+          </div>
+        </section>
+
+        <section class="container-dispute">
+          <aside class="container-dispute__sidebar">
+            <label class="andes-radio">
+              <input type="radio" name="dispute" checked>
+              <span>Disputa principal</span>
+              <span class="mediation-dispute-sidebar__dates">Criada em 2026-06-18</span>
+            </label>
+
+            <label class="andes-radio">
+              <input type="radio" name="dispute">
+              <span>Revisão logística</span>
+              <span class="mediation-dispute-sidebar__dates">Criada em 2026-06-19</span>
+            </label>
+          </aside>
+
+          <main class="container-dispute__content">
+            <header class="mediation-dispute-header">
+              <div class="mediation-dispute-header__title">Produto não entregue</div>
+              <div class="mediation-dispute-header__status">Aguardando análise</div>
+
+              <ul class="mediation-dispute-header__info">
+                <li>Motivo: entrega com atraso</li>
+                <li>Pedido: 2000000000123456</li>
+                <li>Valor: R$ 149,90</li>
+              </ul>
+            </header>
+
+            <section class="container-messaging__messages">
+              <div class="container-messaging__date-group">Histórico da disputa</div>
+
+              <div class="container-message">
+                <span class="container-message__typeUser">Sistema</span>
+                <span class="container-message__date">11:00</span>
+                <div class="container-message__content">
+                  Disputa aberta automaticamente por falta de atualização logística.
+                </div>
+              </div>
+            </section>
+          </main>
+        </section>
+
+        <section class="mediation-ratings">
+          <div class="mediation-ratings__body">
+            Qualificações: comprador com boa reputação; vendedor com histórico normal.
+          </div>
+        </section>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    log("Modal de detalhe/mediação aberto.");
+  }
+
+  function createShipmentSecondLevel() {
+    removeSectionByIdContains("shipmentsecondlevelmodule");
+
+    const section = document.createElement("section");
+    section.className = "remote-module";
+    section.id = "remote-module-shipmentsecondlevelmodule";
+    section.dataset.mockDynamic = "true";
+    document.body.appendChild(section);
+
+    const sr1 = section.attachShadow({ mode: "open" });
+
+    sr1.innerHTML = `
+      <style>
+        .panel {
+          position: fixed;
+          right: 24px;
+          top: 90px;
+          width: 620px;
+          max-width: calc(100vw - 48px);
+          max-height: calc(100vh - 120px);
+          overflow: auto;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          box-shadow: 0 16px 50px rgba(0,0,0,.22);
+          padding: 16px;
+          z-index: 999;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .shipment-second-level__close {
+          text-align: right;
+        }
+
+        button {
+          border: none;
+          background: #eef3ff;
+          color: #3483fa;
+          border-radius: 8px;
+          padding: 7px 10px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .card-collapsible_footer span {
+          color: #3483fa;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .historical-states,
+        .cost-detail-container {
+          border-top: 1px solid #e5e7eb;
+          margin-top: 14px;
+          padding-top: 14px;
+        }
+
+        .key-value-field {
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          margin: 5px 0;
+        }
+
+        .key-value-field_key {
+          font-weight: 700;
+          color: #555;
+        }
+
+        .andes-money-amount__currency-symbol {
+          margin-right: 2px;
+        }
+      </style>
+
+      <div class="panel">
+        <div class="shipment-second-level__close">
+          <button aria-label="Fechar">Fechar</button>
+        </div>
+
+        <h2>Segundo nível do envio</h2>
+
+        <section class="remote-module" id="remote-module-shipmentdetailmodule"></section>
+
+        <div class="card-collapsible_footer">
+          <span>Mostrar status completo</span>
+        </div>
+
+        <section class="historical-states">
+          <div class="andes-message__text">
+            Histórico logístico mockado.
+          </div>
+
+          <div data-testid="historical-state-item-1">
+            <div data-testid="historical-state-item.date">2026-06-17 15:40</div>
+            <h3 data-testid="historical-state-item.status">Postado pelo vendedor</h3>
+            <ul class="checkpoint-list">
+              <li>Pacote recebido pela transportadora</li>
+            </ul>
+          </div>
+
+          <div data-testid="historical-state-item-2">
+            <div data-testid="historical-state-item.date">2026-06-18 08:10</div>
+            <h3 data-testid="historical-state-item.status">Em transferência</h3>
+            <ul class="checkpoint-list">
+              <li>Centro logístico São Paulo</li>
+              <li>Previsão de entrega alterada</li>
+            </ul>
+          </div>
+
+          <div data-testid="historical-state-item-3">
+            <div data-testid="historical-state-item.date">2026-06-19 19:20</div>
+            <h3 data-testid="historical-state-item.status">Atrasado</h3>
+            <ul class="checkpoint-list">
+              <li>Aguardando nova atualização</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="cost-detail-container">
+          <h3>Custos do envio</h3>
+
+          <div data-testid="shipment-cost-detail.cost-detail-card-buyer">
+            <h4>Comprador</h4>
+            <div class="key-value-field separation-size-full">
+              <span class="key-value-field_key">Frete pago</span>
+              <span class="key-value-field_value">
+                <span class="andes-money-amount">
+                  <span class="andes-money-amount__currency-symbol">R$</span>
+                  <span class="andes-money-amount__fraction">19</span>
+                  <span class="andes-money-amount__cents">90</span>
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div data-testid="shipment-cost-detail.cost-detail-card-seller">
+            <h4>Vendedor</h4>
+            <div class="key-value-field separation-size-full">
+              <span class="key-value-field_key">Bonificação</span>
+              <span class="key-value-field_value">
+                <span class="andes-money-amount">
+                  <span class="andes-money-amount__currency-symbol">R$</span>
+                  <span class="andes-money-amount__fraction">5</span>
+                  <span class="andes-money-amount__cents">00</span>
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div data-testid="shipment-cost-detail.cost-detail-card-meli">
+            <h4>Mercado Livre</h4>
+            <div class="key-value-field separation-size-full">
+              <span class="key-value-field_key">Subsídio</span>
+              <span class="key-value-field_value">
+                <span class="cost-detail-card-free">Grátis</span>
+              </span>
+            </div>
+          </div>
+
+          <footer data-testid="shipment-cost-detail.footer">
+            <span data-testid="key-value-list.key">Total logístico</span>
+            <span data-testid="key-value-list.value">
+              <span class="andes-money-amount">
+                <span class="andes-money-amount__currency-symbol">R$</span>
+                <span class="andes-money-amount__fraction">24</span>
+                <span class="andes-money-amount__cents">90</span>
+              </span>
+            </span>
+          </footer>
+        </section>
+      </div>
+    `;
+
+    const detailSection = sr1.querySelector("#remote-module-shipmentdetailmodule");
+    const sr2 = detailSection.attachShadow({ mode: "open" });
+
+    sr2.innerHTML = `
+      <style>
+        .delivery-data {
+          border: 1px solid #e5e7eb;
+          border-radius: 10px;
+          padding: 12px;
+          background: #fafafa;
+        }
+
+        .card-collapsible_header {
+          margin-bottom: 8px;
+        }
+
+        button {
+          border: none;
+          background: #eef3ff;
+          color: #3483fa;
+          border-radius: 8px;
+          padding: 7px 10px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .card-collapsible_footer span {
+          color: #3483fa;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        [data-testid="key-value-list"],
+        .key-value-field {
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          margin: 5px 0;
+        }
+
+        [data-testid="key-value-list.key"],
+        .key-value-field_key {
+          font-weight: 700;
+          color: #555;
+        }
+      </style>
+
+      <div class="card-collapsible_header">
+        <div>
+          <div>
+            <button>Expandir dados de entrega</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="delivery-data">
+        <h3>Dados da entrega</h3>
+
+        <div data-testid="key-value-list">
+          <span data-testid="key-value-list.key">Transportadora</span>
+          <span data-testid="key-value-list.value">Mercado Envios Mock</span>
+        </div>
+
+        <div data-testid="key-value-list">
+          <span data-testid="key-value-list.key">Código</span>
+          <span data-testid="key-value-list.value">BR123456789BR</span>
+        </div>
+
+        <div class="key-value-field">
+          <span class="key-value-field_key">Endereço</span>
+          <span class="key-value-field_value">Rua Teste, 123 - São Paulo</span>
+        </div>
+
+        <div class="delivery-data__dates">
+          <h4>Datas associadas</h4>
+
+          <div class="key-value-field">
+            <span class="key-value-field_key">Criado em</span>
+            <span class="key-value-field_value">2026-06-17</span>
+          </div>
+
+          <div class="key-value-field">
+            <span class="key-value-field_key">Prometido até</span>
+            <span class="key-value-field_value">2026-06-21</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="card-collapsible_footer">
+        <span>Mostrar datas completas</span>
+      </div>
+    `;
+
+    sr1.querySelector(".shipment-second-level__close button").addEventListener("click", () => {
+      section.remove();
+      log("Segundo nível do envio fechado.");
+    });
+
+    log("Segundo nível do envio criado.");
+  }
+
+  function createPurchaseSecondLevel() {
+    removeSectionByIdContains("purchasesecondlevelmodule");
+
+    const section = document.createElement("section");
+    section.className = "remote-module";
+    section.id = "remote-module-purchasesecondlevelmodule";
+    section.dataset.mockDynamic = "true";
+    document.body.appendChild(section);
+
+    const sr = section.attachShadow({ mode: "open" });
+
+    sr.innerHTML = `
+      <style>
+        .panel {
+          position: fixed;
+          right: 24px;
+          top: 110px;
+          width: 560px;
+          max-width: calc(100vw - 48px);
+          max-height: calc(100vh - 140px);
+          overflow: auto;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          box-shadow: 0 16px 50px rgba(0,0,0,.22);
+          padding: 16px;
+          z-index: 998;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .cc--message {
+          border: 1px solid #c7f1d8;
+          background: #f6fff9;
+          border-radius: 10px;
+          padding: 12px;
+        }
+
+        .andes-message__title {
+          font-weight: 800;
+          color: #00a650;
+        }
+
+        .seller-info-container {
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .seller-detail_list_card > span {
+          font-weight: 800;
+        }
+
+        .seller-detail_list_element_card {
+          color: #555;
+          margin-top: 5px;
+        }
+
+        .card-collapsible_footer span {
+          display: inline-block;
+          margin-top: 14px;
+          color: #3483fa;
+          font-weight: 800;
+          cursor: pointer;
+        }
+      </style>
+
+      <div class="panel">
+        <h2>Detalhe da compra</h2>
+
+        <div class="cc--message">
+          <div class="andes-message__title">Compra aprovada</div>
+          <div class="andes-message__text">
+            Pagamento confirmado e envio associado ao rastreio BR123456789BR.
+          </div>
+        </div>
+
+        <section class="seller-info-container">
+          <h3>Dados do vendedor</h3>
+
+          <div class="seller-detail_list_card">
+            <span>Loja Exemplo LTDA</span>
+          </div>
+
+          <div class="seller-detail_list_element_card">
+            <div>CNPJ: 12.345.678/0001-90</div>
+          </div>
+
+          <div class="seller-detail_list_element_card">
+            <span>Reputação: Verde</span>
+          </div>
+
+          <div class="seller-detail_list_element_card">
+            <span>Email: vendedor@example.com</span>
+          </div>
+        </section>
+
+        <div class="card-collapsible_footer">
+          <span>Mostrar conversa pós-venda</span>
+        </div>
+      </div>
+    `;
+
+    sr.querySelector(".card-collapsible_footer span").addEventListener("click", () => {
+      if (sr.querySelector("#remote-module-postsalemessagesmodule")) {
+        return;
+      }
+
+      const chatSection = document.createElement("section");
+      chatSection.className = "remote-module";
+      chatSection.id = "remote-module-postsalemessagesmodule";
+      sr.querySelector(".panel").appendChild(chatSection);
+
+      const chatSR = chatSection.attachShadow({ mode: "open" });
+
+      chatSR.innerHTML = `
+        <style>
+          .chat-container {
+            margin-top: 14px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 14px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          }
+
+          .date-bubble span {
+            display: inline-block;
+            color: #777;
+            font-weight: 700;
+            font-size: 12px;
+            margin: 8px 0;
+          }
+
+          .message-content {
+            margin: 8px 0;
+          }
+
+          .chat-bubble {
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            background: #fafafa;
+            padding: 10px;
+          }
+
+          .chat-bubble.seller {
+            background: #eef3ff;
+          }
+
+          .text > span[translate] {
+            font-weight: 800;
+          }
+
+          .time {
+            color: #777;
+            font-size: 12px;
+            margin-bottom: 6px;
+          }
+
+          .attachments-container {
+            margin-top: 6px;
+          }
+        </style>
+
+        <div class="chat-container">
+          <div>
+            <div class="date-bubble"><span>2026-06-18</span></div>
+
+            <div class="message-content">
+              <div class="chat-bubble">
+                <div class="text"><span translate="no">Maria Teste</span></div>
+                <div class="time"><span>09:00</span></div>
+                <div class="attachments-container">
+                  <div class="text">
+                    <span translate="yes">
+                      <div>Olá, gostaria de saber onde está meu produto.</div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="message-content">
+              <div class="chat-bubble seller">
+                <div class="text"><span translate="no">Loja Exemplo</span></div>
+                <div class="time"><span>09:35</span></div>
+                <div class="attachments-container">
+                  <div class="text">
+                    <span translate="yes">
+                      <div>Olá, o pedido já foi enviado. Rastreio BR123456789BR.</div>
+                    </span>
+                  </div>
+                  <img alt="comprovante-envio.png" src="">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      log("Conversa pós-venda criada.");
+    });
+
+    log("Segundo nível da compra criado.");
+  }
+
+  function bindMockEvents() {
+    $("#open-detail").addEventListener("click", createMediationModal);
+    $("#open-shipment").addEventListener("click", createShipmentSecondLevel);
+
+    document.querySelectorAll(".andes-button--mute").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = document.querySelector(btn.dataset.expand);
+        if (target) {
+          target.style.display = "block";
+          btn.remove();
+          log("Trecho 'Ler mais' expandido.");
+        }
+      });
+    });
+
+    $("#run-tool").addEventListener("click", () => {
+      const code = $("#tool-code").value.trim();
+
+      if (!code) {
+        alert("Cole o script da ferramenta primeiro.");
+        return;
+      }
+
+      try {
+        new Function(code)();
+        log("Script da ferramenta executado.");
+      } catch (err) {
+        console.error(err);
+        log("Erro ao executar ferramenta: " + err.message);
+        alert("Erro ao executar: " + err.message);
+      }
+    });
+
+    $("#reset-mock").addEventListener("click", () => {
+      clearDynamicMock();
+      document.querySelectorAll(".mock-modal").forEach(el => el.remove());
+      removeSectionByIdContains("shipmentsecondlevelmodule");
+      removeSectionByIdContains("purchasesecondlevelmodule");
+
+      document.querySelectorAll("#extra-1, #extra-2").forEach(el => {
+        el.style.display = "none";
+      });
+
+      createToolbarRemoteModule();
+      createContextSectionsModule();
+      createResolutionModule();
+
+      log("Mock resetado. Se a ferramenta já estava ativa, execute novamente ou aguarde o watcher.");
+    });
+
+    $("#read-clipboard").addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        $("#clipboard-output").value = text;
+        log("Clipboard lido com sucesso.");
+      } catch (err) {
+        log("Não foi possível ler clipboard: " + err.message);
+        alert(
+          "O navegador bloqueou a leitura do clipboard. " +
+          "Você ainda pode colar manualmente em um bloco de notas para conferir."
+        );
+      }
+    });
+  }
+
+  function boot() {
+    $("#log").textContent = "Mock inicializado.";
+
+    createToolbarRemoteModule();
+    createContextSectionsModule();
+    createResolutionModule();
+    bindMockEvents();
+
+    log("Pronto. Cole e execute a ferramenta.");
+  }
+
+  boot();
+</script>
+</body>
+</html>
